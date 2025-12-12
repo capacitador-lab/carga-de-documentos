@@ -11,37 +11,11 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
     }
     iframe {
       border: none;
       width: 100%;
       height: 100%;
-    }
-    .loader {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      text-align: center;
-      background: white;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    }
-    .spinner {
-      border: 4px solid #f3f3f3;
-      border-top: 4px solid #3498db;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      animation: spin 1s linear infinite;
-      margin: 0 auto 15px;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
     }
     .error {
       display: none;
@@ -52,132 +26,70 @@
       background: white;
       padding: 30px;
       border-radius: 10px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      box-shadow: 0 0 20px rgba(0,0,0,0.2);
       text-align: center;
       max-width: 400px;
-    }
-    .btn {
-      background: #3498db;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 5px;
-      cursor: pointer;
-      margin-top: 15px;
-      font-size: 14px;
+      z-index: 1000;
     }
   </style>
 </head>
 <body>
 
-  <!-- Loader -->
-  <div id="loader" class="loader">
-    <div class="spinner"></div>
-    <p>Iniciando sistema de documentos...</p>
-  </div>
-
-  <!-- Error message -->
   <div id="error" class="error">
-    <h3 style="color: #e74c3c;">⚠️ Error</h3>
-    <p id="errorText">No se puede cargar la aplicación</p>
-    <button class="btn" onclick="retry()">Reintentar</button>
+    <h2>⚠️ Error de carga</h2>
+    <p id="errorMsg">No se puede cargar la aplicación</p>
+    <button onclick="retryLoad()" style="
+      margin-top: 15px;
+      padding: 10px 20px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    ">Reintentar</button>
   </div>
 
-  <!-- Main iframe -->
   <iframe 
     id="appFrame"
-    title="Sistema de Documentos RODICON"
+    src="https://script.google.com/macros/s/AKfycbzwG6m_uwI9fy-ARBmdwc4iOD4SAun9u2dfQ9iThbupFj9rVyl26o0i9ccv9RKxhmxh/exec"
+    title="Sistema de Documentos"
     sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
     allow="camera"
-    style="display: none;"
   ></iframe>
 
   <script>
-    // BASE64 CORREGIDO para tu URL específica
-    // URL: https://script.google.com/macros/s/AKfycbzwG6m_uwI9fy-ARBmdwc4iOD4SAun9u2dfQ9iThbupFj9rVyl26o0i9ccv9RKxhmxh/exec
-    var codigoBase64 = "aHR0cHM6Ly9zY3JpcHQuZ29vZ2xlLmNvbS9tYWNyb3Mvcy9BS2Z5Y2J6d0c2bV91d0k5ZnktQVJCbWR3YzRpT0Q0U0F1bjl1MmRmUTlpVGhidXBGajlyVnlsMjZvMGk5Y2N2OVJLeGhteC9leGVj";
-    
-    // Función para decodificar
-    function decodificarURL() {
-      try {
-        // Limpiar el Base64
-        var base64Limpio = codigoBase64.replace(/\s/g, '');
-        
-        // Decodificar
-        var url = atob(base64Limpio);
-        
-        // Verificar que sea válida
-        console.log("URL decodificada:", url);
-        
-        if (!url || !url.startsWith('https://')) {
-          throw new Error('URL inválida después de decodificar');
-        }
-        
-        return url;
-      } catch (error) {
-        console.error('Error al decodificar:', error);
-        return null;
-      }
-    }
-    
-    // Mostrar error
-    function mostrarError(mensaje) {
-      document.getElementById('loader').style.display = 'none';
-      document.getElementById('errorText').textContent = mensaje;
-      document.getElementById('error').style.display = 'block';
-    }
-    
-    // Reintentar
-    function retry() {
+    document.getElementById('appFrame').addEventListener('load', function() {
+      console.log('Iframe cargado correctamente');
       document.getElementById('error').style.display = 'none';
-      document.getElementById('loader').style.display = 'block';
-      iniciarCarga();
-    }
-    
-    // Iniciar carga
-    function iniciarCarga() {
-      // Obtener URL decodificada
-      var urlReal = decodificarURL();
-      
-      if (!urlReal) {
-        mostrarError('Error en la configuración del sistema. Contacte al administrador.');
-        return;
-      }
-      
-      var iframe = document.getElementById('appFrame');
-      var loader = document.getElementById('loader');
-      
-      // Configurar eventos
-      iframe.onload = function() {
-        console.log('✅ Aplicación cargada exitosamente');
-        loader.style.display = 'none';
-        iframe.style.display = 'block';
-      };
-      
-      iframe.onerror = function() {
-        mostrarError('No se pudo conectar con el servidor. Verifica tu conexión a internet.');
-      };
-      
-      // Asignar URL al iframe
-      console.log('Cargando URL:', urlReal);
-      iframe.src = urlReal;
-      
-      // Timeout de 30 segundos
-      setTimeout(function() {
-        if (loader.style.display !== 'none') {
-          mostrarError('La carga está tardando demasiado. Verifica tu conexión.');
-        }
-      }, 30000);
-    }
-    
-    // Iniciar cuando la página cargue
-    window.addEventListener('DOMContentLoaded', function() {
-      iniciarCarga();
     });
-    
-    // Fallback
-    if (document.readyState === 'complete') {
-      iniciarCarga();
+
+    document.getElementById('appFrame').addEventListener('error', function() {
+      console.error('Error cargando el iframe');
+      document.getElementById('errorMsg').textContent = 
+        'No se pudo cargar la aplicación. Verifica: \n' +
+        '1. Tu conexión a internet\n' +
+        '2. Que la URL sea correcta\n' +
+        '3. Que la aplicación esté desplegada como "Anyone"';
+      document.getElementById('error').style.display = 'block';
+    });
+
+    // Timeout después de 30 segundos
+    setTimeout(function() {
+      const iframe = document.getElementById('appFrame');
+      if (iframe.contentDocument && iframe.contentDocument.readyState === 'complete') {
+        console.log('Iframe cargado con timeout');
+      } else {
+        console.warn('Timeout en carga del iframe');
+        document.getElementById('errorMsg').textContent = 
+          'La carga está tardando demasiado. Por favor, recarga la página.';
+        document.getElementById('error').style.display = 'block';
+      }
+    }, 30000);
+
+    function retryLoad() {
+      document.getElementById('error').style.display = 'none';
+      document.getElementById('appFrame').src = 
+        document.getElementById('appFrame').src + '?retry=' + Date.now();
     }
   </script>
 
