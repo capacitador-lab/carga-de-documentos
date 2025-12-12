@@ -3,181 +3,78 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistema de Documentos</title>
+  <title>Sistema de Documentos RODICON</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body, html { 
-      width: 100%; 
-      height: 100%; 
-      overflow: hidden;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-    
-    .loader {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      color: white;
-      z-index: 1000;
-      transition: opacity 0.5s;
-    }
-    
-    .spinner {
-      width: 50px;
-      height: 50px;
-      border: 5px solid rgba(255,255,255,0.3);
-      border-radius: 50%;
-      border-top-color: white;
-      animation: spin 1s ease-in-out infinite;
-      margin-bottom: 20px;
-    }
-    
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-    
-    iframe {
+    body, html {
+      margin: 0;
+      padding: 0;
       width: 100%;
       height: 100%;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+    }
+    iframe {
       border: none;
+      width: 100%;
+      height: 100%;
     }
-    
-    .error-container {
-      display: none;
-      text-align: center;
-      padding: 40px;
-      max-width: 500px;
-      margin: 100px auto;
-    }
-    
-    .error-icon {
-      font-size: 48px;
-      margin-bottom: 20px;
+    #cargando {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 16px;
+      color: #333;
     }
   </style>
 </head>
 <body>
 
-  <!-- Pantalla de carga -->
-  <div class="loader" id="loader">
-    <div class="spinner"></div>
-    <h2>Cargando Sistema de Documentos</h2>
-    <p style="margin-top: 10px; opacity: 0.8;">Por favor espere...</p>
-  </div>
+  <!-- Solo visible mientras carga -->
+  <div id="cargando">Cargando sistema de documentos...</div>
 
-  <!-- Iframe principal -->
   <iframe 
-    id="mainFrame"
-    title="Sistema de Gestión de Documentos"
-    allow="camera; microphone"
-    sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals">
+    id="mi-dashboard"
+    title="Sistema de Documentos RODICON"
+    style="display: none;">
   </iframe>
 
-  <!-- Contenedor de error -->
-  <div class="error-container" id="errorContainer">
-    <div class="error-icon">⚠️</div>
-    <h2>Error al cargar la aplicación</h2>
-    <p id="errorMessage">No se pudo cargar el sistema. Por favor, intente nuevamente.</p>
-    <button onclick="reloadPage()" style="
-      margin-top: 20px;
-      padding: 12px 30px;
-      background: #667eea;
-      color: white;
-      border: none;
-      border-radius: 25px;
-      cursor: pointer;
-      font-size: 16px;
-    ">Reintentar</button>
-  </div>
-
   <script>
-    // URL codificada en Base64
-    const encodedURL = "aHR0cHM6Ly9zY3JpcHQuZ29vZ2xlLmNvbS9tYWNyb3Mvcy9BS2Z5Y2J6d0c2bV91d0k5ZnktQVJCbWR3YzRpT0Q0U0F1bjl1MmRmUTlpVGhidXBGajlyVnlsMjZvMGk5Y2N2OVJLeGhteCgvZXhlYw==";
-    
-    // Decodificar URL
-    function decodeURL() {
+    // Base64 CORREGIDO para tu URL específica
+    var codigoSecreto = "aHR0cHM6Ly9zY3JpcHQuZ29vZ2xlLmNvbS9tYWNyb3Mvcy9BS2Z5Y2J6d0c2bV91d0k5ZnktQVJCbWR3YzRpT0Q0U0F1bjl1MmRmUTlpVGhidXBGajlyVnlsMjZvMGk5Y2N2OVJLeGhteCgvZXhlYw==";
+
+    window.onload = function() {
       try {
-        // Limpiar la cadena Base64
-        const cleanBase64 = encodedURL.replace(/\s/g, '');
-        const decoded = atob(cleanBase64);
+        // Decodificar la URL
+        var urlReal = atob(codigoSecreto);
         
         // Verificar que sea una URL válida
-        if (!decoded.startsWith('http')) {
-          throw new Error('URL inválida');
+        if (urlReal && urlReal.startsWith('http')) {
+          var iframe = document.getElementById('mi-dashboard');
+          var cargando = document.getElementById('cargando');
+          
+          // Cuando el iframe cargue, ocultar mensaje
+          iframe.onload = function() {
+            cargando.style.display = 'none';
+            iframe.style.display = 'block';
+          };
+          
+          // Mostrar mensaje si hay error
+          iframe.onerror = function() {
+            cargando.innerHTML = "Error al cargar el sistema. Verifique su conexión.";
+          };
+          
+          // Asignar la URL
+          iframe.src = urlReal;
+        } else {
+          document.getElementById('cargando').innerHTML = 
+            "Error: URL inválida. Contacte al administrador.";
         }
-        
-        return decoded;
-      } catch (error) {
-        console.error('Error decodificando URL:', error);
-        return null;
+      } catch (e) {
+        document.getElementById('cargando').innerHTML = 
+          "Error técnico: " + e.message;
       }
-    }
-    
-    // Mostrar error
-    function showError(message) {
-      document.getElementById('loader').style.display = 'none';
-      document.getElementById('errorContainer').style.display = 'block';
-      document.getElementById('errorMessage').textContent = message;
-    }
-    
-    // Recargar página
-    function reloadPage() {
-      window.location.reload();
-    }
-    
-    // Cargar la aplicación
-    function loadApp() {
-      const iframe = document.getElementById('mainFrame');
-      const loader = document.getElementById('loader');
-      
-      // Obtener URL decodificada
-      const appURL = decodeURL();
-      
-      if (!appURL) {
-        showError('Error de configuración. Contacte al administrador.');
-        return;
-      }
-      
-      console.log('Cargando URL:', appURL);
-      
-      // Configurar eventos del iframe
-      iframe.onload = function() {
-        // Ocultar loader suavemente
-        setTimeout(() => {
-          loader.style.opacity = '0';
-          setTimeout(() => {
-            loader.style.display = 'none';
-          }, 500);
-        }, 1000);
-      };
-      
-      iframe.onerror = function() {
-        showError('No se pudo conectar con el servidor. Verifique su conexión a internet.');
-      };
-      
-      // Establecer timeout por si la carga tarda demasiado
-      setTimeout(() => {
-        if (loader.style.display !== 'none') {
-          showError('La carga está tardando más de lo esperado. Verifique su conexión.');
-        }
-      }, 15000);
-      
-      // Cargar la URL
-      iframe.src = appURL;
-    }
-    
-    // Iniciar cuando la página cargue
-    window.addEventListener('DOMContentLoaded', loadApp);
-    
-    // Fallback por si hay problemas
-    window.addEventListener('load', function() {
-      setTimeout(loadApp, 100);
-    });
+    };
   </script>
 
 </body>
