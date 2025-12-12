@@ -12,11 +12,36 @@
       height: 100%;
       overflow: hidden;
       font-family: Arial, sans-serif;
+      background: #f5f5f5;
     }
     iframe {
       border: none;
       width: 100%;
       height: 100%;
+    }
+    .loader {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #3498db;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 15px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
     .error {
       display: none;
@@ -27,169 +52,132 @@
       background: white;
       padding: 30px;
       border-radius: 10px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.2);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
       text-align: center;
       max-width: 400px;
-      z-index: 1000;
     }
-    .loading {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      text-align: center;
-      z-index: 999;
-    }
-    .spinner {
-      border: 4px solid rgba(0, 0, 0, 0.1);
-      border-radius: 50%;
-      border-top: 4px solid #007bff;
-      width: 40px;
-      height: 40px;
-      animation: spin 1s linear infinite;
-      margin: 0 auto 15px;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+    .btn {
+      background: #3498db;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 15px;
+      font-size: 14px;
     }
   </style>
 </head>
 <body>
 
-  <!-- Loading spinner -->
-  <div id="loading" class="loading">
+  <!-- Loader -->
+  <div id="loader" class="loader">
     <div class="spinner"></div>
-    <p>Cargando sistema de documentos...</p>
+    <p>Iniciando sistema de documentos...</p>
   </div>
 
   <!-- Error message -->
   <div id="error" class="error">
-    <h2>⚠️ Error de carga</h2>
-    <p id="errorMsg">No se puede cargar la aplicación</p>
-    <button onclick="retryLoad()" style="
-      margin-top: 15px;
-      padding: 10px 20px;
-      background: #007bff;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    ">Reintentar</button>
+    <h3 style="color: #e74c3c;">⚠️ Error</h3>
+    <p id="errorText">No se puede cargar la aplicación</p>
+    <button class="btn" onclick="retry()">Reintentar</button>
   </div>
 
-  <!-- Main iframe (initially hidden) -->
+  <!-- Main iframe -->
   <iframe 
     id="appFrame"
-    title="Sistema de Documentos"
+    title="Sistema de Documentos RODICON"
     sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
     allow="camera"
     style="display: none;"
   ></iframe>
 
   <script>
-    // Tu URL codificada en Base64
-    // URL original: https://script.google.com/macros/s/AKfycbzwG6m_uwI9fy-ARBmdwc4iOD4SAun9u2dfQ9iThbupFj9rVyl26o0i9ccv9RKxhmxh/exec
-    var codigoSecreto = "aHR0cHM6Ly9zY3JpcHQuZ29vZ2xlLmNvbS9tYWNyb3Mvcy9BS2Z5Y2J6d0c2bV91d0k5ZnktQVJCbWR3YzRpT0Q0U0F1bjl1MmRmUTlpVGhidXBGajlyVnlsMjZvMGk5Y2N2OVJLeGhteCgvZXhlYw==";
-
-    // Función para decodificar Base64 de manera segura
+    // BASE64 CORREGIDO para tu URL específica
+    // URL: https://script.google.com/macros/s/AKfycbzwG6m_uwI9fy-ARBmdwc4iOD4SAun9u2dfQ9iThbupFj9rVyl26o0i9ccv9RKxhmxh/exec
+    var codigoBase64 = "aHR0cHM6Ly9zY3JpcHQuZ29vZ2xlLmNvbS9tYWNyb3Mvcy9BS2Z5Y2J6d0c2bV91d0k5ZnktQVJCbWR3YzRpT0Q0U0F1bjl1MmRmUTlpVGhidXBGajlyVnlsMjZvMGk5Y2N2OVJLeGhteC9leGVj";
+    
+    // Función para decodificar
     function decodificarURL() {
       try {
-        // Limpiar posibles espacios o saltos de línea
-        var base64Limpio = codigoSecreto.replace(/\s/g, '');
+        // Limpiar el Base64
+        var base64Limpio = codigoBase64.replace(/\s/g, '');
         
         // Decodificar
-        var urlDecodificada = atob(base64Limpio);
+        var url = atob(base64Limpio);
         
-        // Verificar que sea una URL válida
-        if (!urlDecodificada.startsWith('http')) {
-          throw new Error('URL inválida');
+        // Verificar que sea válida
+        console.log("URL decodificada:", url);
+        
+        if (!url || !url.startsWith('https://')) {
+          throw new Error('URL inválida después de decodificar');
         }
         
-        return urlDecodificada;
+        return url;
       } catch (error) {
-        console.error('Error decodificando URL:', error);
-        mostrarError('Error de configuración. Contacte al administrador.');
+        console.error('Error al decodificar:', error);
         return null;
       }
     }
-
-    // Cargar la aplicación
-    function cargarAplicacion() {
+    
+    // Mostrar error
+    function mostrarError(mensaje) {
+      document.getElementById('loader').style.display = 'none';
+      document.getElementById('errorText').textContent = mensaje;
+      document.getElementById('error').style.display = 'block';
+    }
+    
+    // Reintentar
+    function retry() {
+      document.getElementById('error').style.display = 'none';
+      document.getElementById('loader').style.display = 'block';
+      iniciarCarga();
+    }
+    
+    // Iniciar carga
+    function iniciarCarga() {
+      // Obtener URL decodificada
       var urlReal = decodificarURL();
       
       if (!urlReal) {
-        return; // Ya se mostró el error
+        mostrarError('Error en la configuración del sistema. Contacte al administrador.');
+        return;
       }
       
       var iframe = document.getElementById('appFrame');
-      var loading = document.getElementById('loading');
-      var error = document.getElementById('error');
+      var loader = document.getElementById('loader');
       
-      // Configurar eventos del iframe
+      // Configurar eventos
       iframe.onload = function() {
-        console.log('Iframe cargado correctamente');
-        loading.style.display = 'none';
-        error.style.display = 'none';
+        console.log('✅ Aplicación cargada exitosamente');
+        loader.style.display = 'none';
         iframe.style.display = 'block';
       };
       
       iframe.onerror = function() {
-        console.error('Error cargando el iframe');
-        loading.style.display = 'none';
-        document.getElementById('errorMsg').textContent = 
-          'No se pudo cargar la aplicación. Verifica:\n' +
-          '1. Tu conexión a internet\n' +
-          '2. Que la URL sea correcta\n' +
-          '3. Que la aplicación esté desplegada como "Anyone"';
-        error.style.display = 'block';
+        mostrarError('No se pudo conectar con el servidor. Verifica tu conexión a internet.');
       };
       
-      // Establecer la URL
+      // Asignar URL al iframe
       console.log('Cargando URL:', urlReal);
       iframe.src = urlReal;
       
-      // Timeout después de 30 segundos
+      // Timeout de 30 segundos
       setTimeout(function() {
-        if (loading.style.display !== 'none') {
-          console.warn('Timeout en carga del iframe');
-          loading.style.display = 'none';
-          document.getElementById('errorMsg').textContent = 
-            'La carga está tardando demasiado. Por favor, recarga la página.';
-          error.style.display = 'block';
+        if (loader.style.display !== 'none') {
+          mostrarError('La carga está tardando demasiado. Verifica tu conexión.');
         }
       }, 30000);
     }
-
-    function mostrarError(mensaje) {
-      document.getElementById('loading').style.display = 'none';
-      document.getElementById('errorMsg').textContent = mensaje;
-      document.getElementById('error').style.display = 'block';
-    }
-
-    function retryLoad() {
-      document.getElementById('error').style.display = 'none';
-      document.getElementById('loading').style.display = 'block';
-      
-      // Forzar recarga con timestamp para evitar cache
-      var iframe = document.getElementById('appFrame');
-      var urlReal = decodificarURL();
-      
-      if (urlReal) {
-        iframe.src = urlReal + '?retry=' + Date.now();
-      }
-    }
-
+    
     // Iniciar cuando la página cargue
-    window.onload = function() {
-      cargarAplicacion();
-    };
-
-    // También intentar si hay retraso
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', cargarAplicacion);
-    } else {
-      cargarAplicacion();
+    window.addEventListener('DOMContentLoaded', function() {
+      iniciarCarga();
+    });
+    
+    // Fallback
+    if (document.readyState === 'complete') {
+      iniciarCarga();
     }
   </script>
 
