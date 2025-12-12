@@ -3,128 +3,93 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistema de Documentos RODICON</title>
+  <title>Sistema RODICON</title>
   <style>
-    body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }
-    iframe { border: none; width: 100%; height: 100%; }
-    .loader { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
-    .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 15px; }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    .error { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); text-align: center; max-width: 400px; }
+    body,html{margin:0;padding:0;width:100%;height:100%;overflow:hidden}
+    iframe{border:none;width:100%;height:100%}
+    #loader{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+    .spinner{border:3px solid #f3f3f3;border-top:3px solid #2c80ff;border-radius:50%;width:30px;height:30px;animation:spin 1s linear infinite;margin:10px auto}
+    @keyframes spin{0%{transform:rotate(0)}to{transform:rotate(360deg)}}
+    #error{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:20px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.1);text-align:center;max-width:300px}
   </style>
 </head>
 <body>
 
-  <div id="loader" class="loader">
-    <div class="spinner"></div>
-    <p>Iniciando sistema...</p>
-  </div>
+<div id="loader">
+  <div class="spinner"></div>
+  <p>Iniciando...</p>
+</div>
 
-  <div id="error" class="error">
-    <h3 style="color: #e74c3c;">⚠️ Error</h3>
-    <p id="errMsg">No se puede cargar la aplicación</p>
-    <button onclick="reiniciar()" style="background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 15px;">Reintentar</button>
-  </div>
+<div id="error">
+  <p id="errMsg" style="color:#d32f2f;margin-bottom:15px"></p>
+  <button onclick="r()" style="background:#2c80ff;color:#fff;border:none;padding:8px 16px;border-radius:4px;cursor:pointer">Reintentar</button>
+</div>
 
-  <iframe id="appFrame" style="display: none;" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals" allow="camera"></iframe>
+<iframe id="frame" style="display:none" sandbox="allow-scripts allow-same-origin allow-forms" allow="camera"></iframe>
 
-  <script>
-    // TÉCNICA AVANZADA: URL dividida en partes desordenadas
-    const partes = {
-      p1: "Z29vZ2xl",  // google
-      p2: "LmNvbS9tYWNyb3M",  // .com/macros
-      p3: "aHR0cHM6Ly9zY3JpcHQu",  // https://script.
-      p4: "BS2Z5Y2J6d0c",  // AKfycbzwG
-      p5: "bV91d0k5ZnktQVJC",  // 6m_uwI9fy-ARB
-      p6: "bWR3YzRpT0Q0U0F1",  // mdwc4iOD4SAu
-      p7: "vcy8",  // /s/
-      p8: "bjl1MmRmUTlpVGhidX",  // n9u2dfQ9iThbup
-      p9: "BGajlyVnlsMjZvMGk5",  // Fj9rVyl26o0i9
-      p10: "Y2N2OVJLeGhteC",  // ccv9RKxhmx
-      p11: "/exec",  // /exec
-      p12: "leGVj"  // xec (completar)
-    };
+<script>
+const d={
+  a:"Z29vZ2xl",
+  b:"LmNvbS9tYWNyb3M",
+  c:"aHR0cHM6Ly9zY3JpcHQu",
+  d:"BS2Z5Y2J6d0c",
+  e:"bV91d0k5ZnktQVJC",
+  f:"bWR3YzRpT0Q0U0F1",
+  g:"vcy8",
+  h:"bjl1MmRmUTlpVGhidX",
+  i:"BGajlyVnlsMjZvMGk5",
+  j:"Y2N2OVJLeGhteC",
+  k:"/exec"
+};
 
-    // Función para reconstruir en orden correcto
-    function obtenerURLSecreta() {
-      try {
-        // Orden correcto (no está en el orden de las variables)
-        const orden = [3, 1, 2, 7, 4, 5, 6, 8, 9, 10, 11];
-        let base64 = "";
-        
-        // Construir en el orden secreto
-        orden.forEach(num => {
-          base64 += partes['p' + num];
-        });
-        
-        // Decodificar
-        const url = atob(base64);
-        
-        // Validación adicional
-        if (!url.includes('script.google.com') || !url.endsWith('/exec')) {
-          throw new Error('URL inválida');
-        }
-        
-        return url;
-      } catch (e) {
-        console.error('Error reconstruyendo URL:', e);
-        return null;
-      }
-    }
+function u(){
+  try{
+    const o=[2,0,1,6,3,4,5,7,8,9,10];
+    let b="";
+    o.forEach(n=>b+=Object.values(d)[n]);
+    const r=atob(b);
+    if(!r.includes("google.com"))throw new Error();
+    return r;
+  }catch{
+    return null;
+  }
+}
 
-    // TÉCNICA: XOR simple para mayor ofuscación
-    function decodificarXOR(codigo, clave) {
-      let resultado = '';
-      for (let i = 0; i < codigo.length; i++) {
-        resultado += String.fromCharCode(codigo.charCodeAt(i) ^ clave.charCodeAt(i % clave.length));
-      }
-      return resultado;
-    }
+function l(){
+  const url=u();
+  if(!url)return e("Error de configuración");
+  
+  const f=document.getElementById("frame");
+  const ld=document.getElementById("loader");
+  
+  f.onload=()=>{
+    ld.style.display="none";
+    f.style.display="block";
+  };
+  
+  f.onerror=()=>e("Error de conexión");
+  
+  f.src=url;
+  
+  setTimeout(()=>{
+    if(ld.style.display!=="none")e("Tiempo agotado");
+  },25000);
+}
 
-    // Iniciar carga
-    function cargarApp() {
-      const url = obtenerURLSecreta();
-      
-      if (!url) {
-        mostrarError('Error en la configuración del sistema');
-        return;
-      }
-      
-      const iframe = document.getElementById('appFrame');
-      const loader = document.getElementById('loader');
-      
-      iframe.onload = function() {
-        loader.style.display = 'none';
-        iframe.style.display = 'block';
-      };
-      
-      iframe.onerror = function() {
-        mostrarError('Error de conexión. Verifica tu internet.');
-      };
-      
-      iframe.src = url;
-      
-      setTimeout(() => {
-        if (loader.style.display !== 'none') {
-          mostrarError('Tiempo de espera agotado');
-        }
-      }, 30000);
-    }
-    
-    function mostrarError(msg) {
-      document.getElementById('loader').style.display = 'none';
-      document.getElementById('errMsg').textContent = msg;
-      document.getElementById('error').style.display = 'block';
-    }
-    
-    function reiniciar() {
-      document.getElementById('error').style.display = 'none';
-      document.getElementById('loader').style.display = 'block';
-      setTimeout(cargarApp, 500);
-    }
-    
-    // Iniciar
-    setTimeout(cargarApp, 100);
-  </script>
+function e(m){
+  document.getElementById("loader").style.display="none";
+  document.getElementById("errMsg").textContent=m;
+  document.getElementById("error").style.display="block";
+}
+
+window.r=()=>{
+  document.getElementById("error").style.display="none";
+  document.getElementById("loader").style.display="block";
+  setTimeout(l,300);
+};
+
+setTimeout(l,50);
+</script>
+
 </body>
 </html>
