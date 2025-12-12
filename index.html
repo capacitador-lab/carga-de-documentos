@@ -22,73 +22,140 @@
 
 <div id="error">
   <p id="errMsg" style="color:#d32f2f;margin-bottom:15px"></p>
-  <button onclick="r()" style="background:#2c80ff;color:#fff;border:none;padding:8px 16px;border-radius:4px;cursor:pointer">Reintentar</button>
+  <button onclick="reintentar()" style="background:#2c80ff;color:#fff;border:none;padding:8px 16px;border-radius:4px;cursor:pointer">Reintentar</button>
 </div>
 
-<iframe id="frame" style="display:none" sandbox="allow-scripts allow-same-origin allow-forms" allow="camera"></iframe>
+<iframe id="frame" style="display:none" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals" allow="camera"></iframe>
 
 <script>
-const d={
-  a:"Z29vZ2xl",
-  b:"LmNvbS9tYWNyb3M",
-  c:"aHR0cHM6Ly9zY3JpcHQu",
-  d:"BS2Z5Y2J6d0c",
-  e:"bV91d0k5ZnktQVJC",
-  f:"bWR3YzRpT0Q0U0F1",
-  g:"vcy8",
-  h:"bjl1MmRmUTlpVGhidX",
-  i:"BGajlyVnlsMjZvMGk5",
-  j:"Y2N2OVJLeGhteC",
-  k:"/exec"
+// TÉCNICA 1: URL dividida en fragmentos ASCII
+const fragmentos = {
+  a: [115, 99, 114, 105, 112, 116], // "script"
+  b: [46, 103, 111, 111, 103, 108, 101], // ".google"
+  c: [46, 99, 111, 109], // ".com"
+  d: [47, 109, 97, 99, 114, 111, 115], // "/macros"
+  e: [47, 115, 47], // "/s/"
+  f: [65, 75, 102, 121, 99, 98, 122, 119], // "AKfycbzw"
+  g: [71, 54, 109, 95, 117, 119, 73, 57], // "G6m_uwI9"
+  h: [102, 121, 45, 65, 82, 66, 109, 100], // "fy-ARBmd"
+  i: [119, 99, 52, 105, 79, 68, 52, 83], // "wc4iOD4S"
+  j: [65, 117, 110, 57, 117, 50, 100, 102], // "Aun9u2df"
+  k: [81, 57, 105, 84, 104, 98, 117, 112], // "Q9iThbup"
+  l: [70, 106, 57, 114, 86, 121, 108, 50], // "Fj9rVyl2"
+  m: [54, 111, 48, 105, 57, 99, 99, 118], // "6o0i9ccv"
+  n: [57, 82, 75, 120, 104, 109, 120, 104], // "9RKxhmxh"
+  o: [47, 101, 120, 101, 99] // "/exec"
 };
 
-function u(){
-  try{
-    const o=[2,0,1,6,3,4,5,7,8,9,10];
-    let b="";
-    o.forEach(n=>b+=Object.values(d)[n]);
-    const r=atob(b);
-    if(!r.includes("google.com"))throw new Error();
-    return r;
-  }catch{
+// TÉCNICA 2: XOR para ofuscar partes
+const xorClave = [19, 23, 29, 31, 37];
+function aplicarXOR(arr, clave) {
+  return arr.map((val, idx) => val ^ clave[idx % clave.length]);
+}
+
+// TÉCNICA 3: Reconstruir la URL desde ASCII
+function construirURL() {
+  try {
+    // Orden de los fragmentos
+    const orden = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o'];
+    let url = 'https://';
+    
+    // Construir la URL
+    orden.forEach(key => {
+      let fragmento = fragmentos[key];
+      // Si queremos ser más complejos, podríamos aplicar XOR aquí
+      fragmento.forEach(codigo => {
+        url += String.fromCharCode(codigo);
+      });
+    });
+    
+    // Validar
+    if (!url.includes('script.google.com') || !url.endsWith('/exec')) {
+      throw new Error('URL inválida');
+    }
+    
+    return url;
+  } catch (error) {
+    console.error('Error construyendo URL:', error);
     return null;
   }
 }
 
-function l(){
-  const url=u();
-  if(!url)return e("Error de configuración");
+// TÉCNICA 4: Ofuscar con array de caracteres (alternativa)
+const urlOculta = [
+  104,116,116,112,115,58,47,47,115,99,114,105,112,116,46,103,
+  111,111,103,108,101,46,99,111,109,47,109,97,99,114,111,115,
+  47,115,47,65,75,102,121,99,98,122,119,71,54,109,95,117,119,
+  73,57,102,121,45,65,82,66,109,100,119,99,52,105,79,68,52,83,
+  65,117,110,57,117,50,100,102,81,57,105,84,104,98,117,112,70,
+  106,57,114,86,121,108,50,54,111,48,105,57,99,99,118,57,82,75,
+  120,104,109,120,104,47,101,120,101,99
+];
+
+function obtenerURL() {
+  try {
+    // Método 1: Desde array de caracteres (más simple)
+    let url = '';
+    urlOculta.forEach(codigo => {
+      url += String.fromCharCode(codigo);
+    });
+    
+    // Validar básico
+    if (!url.startsWith('https://')) {
+      throw new Error('URL inválida');
+    }
+    
+    return url;
+  } catch (error) {
+    console.error('Error obteniendo URL:', error);
+    return null;
+  }
+}
+
+// Cargar la aplicación
+function cargarApp() {
+  const url = obtenerURL(); // Cambia a construirURL() si quieres más ofuscación
   
-  const f=document.getElementById("frame");
-  const ld=document.getElementById("loader");
+  if (!url) {
+    mostrarError('Error de configuración');
+    return;
+  }
   
-  f.onload=()=>{
-    ld.style.display="none";
-    f.style.display="block";
+  const iframe = document.getElementById('frame');
+  const loader = document.getElementById('loader');
+  
+  iframe.onload = function() {
+    loader.style.display = 'none';
+    iframe.style.display = 'block';
   };
   
-  f.onerror=()=>e("Error de conexión");
+  iframe.onerror = function() {
+    mostrarError('Error de conexión');
+  };
   
-  f.src=url;
+  iframe.src = url + '?t=' + Date.now(); // Evitar cache
   
-  setTimeout(()=>{
-    if(ld.style.display!=="none")e("Tiempo agotado");
-  },25000);
+  setTimeout(() => {
+    if (loader.style.display !== 'none') {
+      mostrarError('Tiempo de espera agotado');
+    }
+  }, 20000);
 }
 
-function e(m){
-  document.getElementById("loader").style.display="none";
-  document.getElementById("errMsg").textContent=m;
-  document.getElementById("error").style.display="block";
+function mostrarError(mensaje) {
+  document.getElementById('loader').style.display = 'none';
+  document.getElementById('errMsg').textContent = mensaje;
+  document.getElementById('error').style.display = 'block';
 }
 
-window.r=()=>{
-  document.getElementById("error").style.display="none";
-  document.getElementById("loader").style.display="block";
-  setTimeout(l,300);
-};
+function reintentar() {
+  document.getElementById('error').style.display = 'none';
+  document.getElementById('loader').style.display = 'block';
+  setTimeout(cargarApp, 300);
+}
 
-setTimeout(l,50);
+// Iniciar
+document.addEventListener('DOMContentLoaded', cargarApp);
 </script>
 
 </body>
