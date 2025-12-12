@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistema de Documentos RODICON</title>
+  <title>Dashboard de Capacitaciones</title>
   <style>
     body, html {
       margin: 0;
@@ -11,72 +11,31 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      font-family: Arial, sans-serif;
     }
     iframe {
       border: none;
       width: 100%;
       height: 100%;
     }
-    #cargando {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 16px;
-      color: #333;
-    }
   </style>
 </head>
 <body>
 
-  <!-- Solo visible mientras carga -->
-  <div id="cargando">Cargando sistema de documentos...</div>
-
   <iframe 
     id="mi-dashboard"
-    title="Sistema de Documentos RODICON"
-    style="display: none;">
+    src="" 
+    title="Dashboard de Capacitaciones RODICON">
   </iframe>
 
   <script>
-    // Base64 CORREGIDO para tu URL específica
+   
     var codigoSecreto = "aHR0cHM6Ly9zY3JpcHQuZ29vZ2xlLmNvbS9tYWNyb3Mvcy9BS2Z5Y2J4OGdRWG80RzU5NGJlbVRtTEk5MTBFNk1jNW94X2RDcXhRcDBLWm5qSWFVZWRnaDZnMUJvSDFocEJsQVBjTXh2YVUvZXhlYw==";
 
     window.onload = function() {
-      try {
-        // Decodificar la URL
-        var urlReal = atob(codigoSecreto);
-        
-        // Verificar que sea una URL válida
-        if (urlReal && urlReal.startsWith('http')) {
-          var iframe = document.getElementById('mi-dashboard');
-          var cargando = document.getElementById('cargando');
-          
-          // Cuando el iframe cargue, ocultar mensaje
-          iframe.onload = function() {
-            cargando.style.display = 'none';
-            iframe.style.display = 'block';
-          };
-          
-          // Mostrar mensaje si hay error
-          iframe.onerror = function() {
-            cargando.innerHTML = "Error al cargar el sistema. Verifique su conexión.";
-          };
-          
-          // Asignar la URL
-          iframe.src = urlReal;
-        } else {
-          document.getElementById('cargando').innerHTML = 
-            "Error: URL inválida. Contacte al administrador.";
-        }
-      } catch (e) {
-        document.getElementById('cargando').innerHTML = 
-          "Error técnico: " + e.message;
-      }
+      var urlReal = atob(codigoSecreto);
+      document.getElementById('mi-dashboard').src = urlReal;
     };
   </script>
 
 </body>
 </html>
-
