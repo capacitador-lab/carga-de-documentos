@@ -3,83 +3,128 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rodicon Management System</title>
-  <style>*{margin:0;padding:0}body,html{width:100%;height:100%;overflow:hidden}.c1{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}.c2{border:4px solid #e0e0e0;border-top:4px solid #2c80ff;border-radius:50%;width:40px;height:40px;animation:r1 1s linear infinite;margin:0 auto 15px}.c3{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:30px;border-radius:10px;box-shadow:0 8px 25px rgba(0,0,0,0.15);text-align:center;max-width:400px}@keyframes r1{0%{transform:rotate(0)}to{transform:rotate(360deg)}}</style>
+  <title>Sistema de Documentos RODICON</title>
+  <style>
+    body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }
+    iframe { border: none; width: 100%; height: 100%; }
+    .loader { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
+    .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 15px; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .error { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); text-align: center; max-width: 400px; }
+  </style>
 </head>
 <body>
 
-  <div id="l1" class="c1">
-    <div class="c2"></div>
-    <p>Initializing security protocol...</p>
+  <div id="loader" class="loader">
+    <div class="spinner"></div>
+    <p>Iniciando sistema...</p>
   </div>
 
-  <div id="e1" class="c3">
-    <h3 style="color:#e64a19">⚠ System Error</h3>
-    <p id="m1">Initialization failed</p>
-    <button onclick="r2()" style="background:#2c80ff;color:#fff;border:none;padding:10px 25px;border-radius:6px;cursor:pointer;margin-top:20px;font-weight:500">Retry Connection</button>
+  <div id="error" class="error">
+    <h3 style="color: #e74c3c;">⚠️ Error</h3>
+    <p id="errMsg">No se puede cargar la aplicación</p>
+    <button onclick="reiniciar()" style="background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 15px;">Reintentar</button>
   </div>
 
-  <iframe id="f1" style="display:none;width:100%;height:100%;border:0" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals" allow="camera"></iframe>
+  <iframe id="appFrame" style="display: none;" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals" allow="camera"></iframe>
 
   <script>
-    !function(){
-      'use strict';
-      
-      var d1 = {
-        a7: "Ly9zY3JpcHQu",
-        b3: "G9vZ2xl",
-        c5: "LmNvbS9tYWNyb3M",
-        d9: "aHR0cHM6",
-        e2: "vcy8",
-        f8: "BS2Z5Y2J6d0c",
-        g4: "bV91d0k5ZnktQVJC",
-        h6: "bWR3YzRpT0Q0U0F1",
-        i1: "bjl1MmRmUTlpVGhidX",
-        j0: "BGajlyVnlsMjZvMGk5",
-        k11: "Y2N2OVJLeGhteC",
-        l10: "/exec",
-        m12: "pcHQu"
-      };
-      
-      function x1(){
-        try{
-          var o=[4,1,2,3,5,6,7,8,9,10,11],t="";
-          [9,3,2,5,7,4,6,1,0,10,8].forEach(function(n){t+=d1[Object.keys(d1)[n]]});
-          var r=window.atob(t);
-          if(!r||r.indexOf("script")===-1||r.indexOf("google")===-1)throw new Error("E01");
-          return r;
-        }catch(e){
-          console.log("SYSERR:",e.message);
-          return null;
+    // TÉCNICA AVANZADA: URL dividida en partes desordenadas
+    const partes = {
+      p1: "Z29vZ2xl",  // google
+      p2: "LmNvbS9tYWNyb3M",  // .com/macros
+      p3: "aHR0cHM6Ly9zY3JpcHQu",  // https://script.
+      p4: "BS2Z5Y2J6d0c",  // AKfycbzwG
+      p5: "bV91d0k5ZnktQVJC",  // 6m_uwI9fy-ARB
+      p6: "bWR3YzRpT0Q0U0F1",  // mdwc4iOD4SAu
+      p7: "vcy8",  // /s/
+      p8: "bjl1MmRmUTlpVGhidX",  // n9u2dfQ9iThbup
+      p9: "BGajlyVnlsMjZvMGk5",  // Fj9rVyl26o0i9
+      p10: "Y2N2OVJLeGhteC",  // ccv9RKxhmx
+      p11: "/exec",  // /exec
+      p12: "leGVj"  // xec (completar)
+    };
+
+    // Función para reconstruir en orden correcto
+    function obtenerURLSecreta() {
+      try {
+        // Orden correcto (no está en el orden de las variables)
+        const orden = [3, 1, 2, 7, 4, 5, 6, 8, 9, 10, 11];
+        let base64 = "";
+        
+        // Construir en el orden secreto
+        orden.forEach(num => {
+          base64 += partes['p' + num];
+        });
+        
+        // Decodificar
+        const url = atob(base64);
+        
+        // Validación adicional
+        if (!url.includes('script.google.com') || !url.endsWith('/exec')) {
+          throw new Error('URL inválida');
         }
+        
+        return url;
+      } catch (e) {
+        console.error('Error reconstruyendo URL:', e);
+        return null;
+      }
+    }
+
+    // TÉCNICA: XOR simple para mayor ofuscación
+    function decodificarXOR(codigo, clave) {
+      let resultado = '';
+      for (let i = 0; i < codigo.length; i++) {
+        resultado += String.fromCharCode(codigo.charCodeAt(i) ^ clave.charCodeAt(i % clave.length));
+      }
+      return resultado;
+    }
+
+    // Iniciar carga
+    function cargarApp() {
+      const url = obtenerURLSecreta();
+      
+      if (!url) {
+        mostrarError('Error en la configuración del sistema');
+        return;
       }
       
-      function y1(s){
-        document.getElementById("l1").style.display="none";
-        document.getElementById("m1").textContent=s;
-        document.getElementById("e1").style.display="block";
-      }
+      const iframe = document.getElementById('appFrame');
+      const loader = document.getElementById('loader');
       
-      function z1(){
-        var u=x1();
-        if(!u)return y1("Configuration error. Code: CFG-001");
-        var f=document.getElementById("f1"),l=document.getElementById("l1");
-        f.onload=function(){l.style.display="none";f.style.display="block";};
-        f.onerror=function(){y1("Network error. Check connection.");};
-        f.src=u+"?t="+Date.now();
-        setTimeout(function(){if(l.style.display!=="none")y1("Timeout. Server not responding.");},32000);
-      }
-      
-      window.r2=function(){
-        document.getElementById("e1").style.display="none";
-        document.getElementById("l1").style.display="block";
-        setTimeout(z1,300);
+      iframe.onload = function() {
+        loader.style.display = 'none';
+        iframe.style.display = 'block';
       };
       
-      if(document.readyState==="complete")z1();
-      else window.addEventListener("DOMContentLoaded",z1);
+      iframe.onerror = function() {
+        mostrarError('Error de conexión. Verifica tu internet.');
+      };
       
-    }();
+      iframe.src = url;
+      
+      setTimeout(() => {
+        if (loader.style.display !== 'none') {
+          mostrarError('Tiempo de espera agotado');
+        }
+      }, 30000);
+    }
+    
+    function mostrarError(msg) {
+      document.getElementById('loader').style.display = 'none';
+      document.getElementById('errMsg').textContent = msg;
+      document.getElementById('error').style.display = 'block';
+    }
+    
+    function reiniciar() {
+      document.getElementById('error').style.display = 'none';
+      document.getElementById('loader').style.display = 'block';
+      setTimeout(cargarApp, 500);
+    }
+    
+    // Iniciar
+    setTimeout(cargarApp, 100);
   </script>
 </body>
 </html>
