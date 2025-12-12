@@ -11,6 +11,7 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
+      font-family: Arial, sans-serif;
     }
     iframe {
       border: none;
@@ -31,10 +32,38 @@
       max-width: 400px;
       z-index: 1000;
     }
+    .loading {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      z-index: 999;
+    }
+    .spinner {
+      border: 4px solid rgba(0, 0, 0, 0.1);
+      border-radius: 50%;
+      border-top: 4px solid #007bff;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 15px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
 
+  <!-- Loading spinner -->
+  <div id="loading" class="loading">
+    <div class="spinner"></div>
+    <p>Cargando sistema de documentos...</p>
+  </div>
+
+  <!-- Error message -->
   <div id="error" class="error">
     <h2>⚠️ Error de carga</h2>
     <p id="errorMsg">No se puede cargar la aplicación</p>
@@ -49,47 +78,118 @@
     ">Reintentar</button>
   </div>
 
+  <!-- Main iframe (initially hidden) -->
   <iframe 
     id="appFrame"
-    src="https://script.google.com/macros/s/AKfycbzwG6m_uwI9fy-ARBmdwc4iOD4SAun9u2dfQ9iThbupFj9rVyl26o0i9ccv9RKxhmxh/exec"
     title="Sistema de Documentos"
     sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
     allow="camera"
+    style="display: none;"
   ></iframe>
 
   <script>
-    document.getElementById('appFrame').addEventListener('load', function() {
-      console.log('Iframe cargado correctamente');
-      document.getElementById('error').style.display = 'none';
-    });
+    // Tu URL codificada en Base64
+    // URL original: https://script.google.com/macros/s/AKfycbzwG6m_uwI9fy-ARBmdwc4iOD4SAun9u2dfQ9iThbupFj9rVyl26o0i9ccv9RKxhmxh/exec
+    var codigoSecreto = "aHR0cHM6Ly9zY3JpcHQuZ29vZ2xlLmNvbS9tYWNyb3Mvcy9BS2Z5Y2J6d0c2bV91d0k5ZnktQVJCbWR3YzRpT0Q0U0F1bjl1MmRmUTlpVGhidXBGajlyVnlsMjZvMGk5Y2N2OVJLeGhteCgvZXhlYw==";
 
-    document.getElementById('appFrame').addEventListener('error', function() {
-      console.error('Error cargando el iframe');
-      document.getElementById('errorMsg').textContent = 
-        'No se pudo cargar la aplicación. Verifica: \n' +
-        '1. Tu conexión a internet\n' +
-        '2. Que la URL sea correcta\n' +
-        '3. Que la aplicación esté desplegada como "Anyone"';
-      document.getElementById('error').style.display = 'block';
-    });
-
-    // Timeout después de 30 segundos
-    setTimeout(function() {
-      const iframe = document.getElementById('appFrame');
-      if (iframe.contentDocument && iframe.contentDocument.readyState === 'complete') {
-        console.log('Iframe cargado con timeout');
-      } else {
-        console.warn('Timeout en carga del iframe');
-        document.getElementById('errorMsg').textContent = 
-          'La carga está tardando demasiado. Por favor, recarga la página.';
-        document.getElementById('error').style.display = 'block';
+    // Función para decodificar Base64 de manera segura
+    function decodificarURL() {
+      try {
+        // Limpiar posibles espacios o saltos de línea
+        var base64Limpio = codigoSecreto.replace(/\s/g, '');
+        
+        // Decodificar
+        var urlDecodificada = atob(base64Limpio);
+        
+        // Verificar que sea una URL válida
+        if (!urlDecodificada.startsWith('http')) {
+          throw new Error('URL inválida');
+        }
+        
+        return urlDecodificada;
+      } catch (error) {
+        console.error('Error decodificando URL:', error);
+        mostrarError('Error de configuración. Contacte al administrador.');
+        return null;
       }
-    }, 30000);
+    }
+
+    // Cargar la aplicación
+    function cargarAplicacion() {
+      var urlReal = decodificarURL();
+      
+      if (!urlReal) {
+        return; // Ya se mostró el error
+      }
+      
+      var iframe = document.getElementById('appFrame');
+      var loading = document.getElementById('loading');
+      var error = document.getElementById('error');
+      
+      // Configurar eventos del iframe
+      iframe.onload = function() {
+        console.log('Iframe cargado correctamente');
+        loading.style.display = 'none';
+        error.style.display = 'none';
+        iframe.style.display = 'block';
+      };
+      
+      iframe.onerror = function() {
+        console.error('Error cargando el iframe');
+        loading.style.display = 'none';
+        document.getElementById('errorMsg').textContent = 
+          'No se pudo cargar la aplicación. Verifica:\n' +
+          '1. Tu conexión a internet\n' +
+          '2. Que la URL sea correcta\n' +
+          '3. Que la aplicación esté desplegada como "Anyone"';
+        error.style.display = 'block';
+      };
+      
+      // Establecer la URL
+      console.log('Cargando URL:', urlReal);
+      iframe.src = urlReal;
+      
+      // Timeout después de 30 segundos
+      setTimeout(function() {
+        if (loading.style.display !== 'none') {
+          console.warn('Timeout en carga del iframe');
+          loading.style.display = 'none';
+          document.getElementById('errorMsg').textContent = 
+            'La carga está tardando demasiado. Por favor, recarga la página.';
+          error.style.display = 'block';
+        }
+      }, 30000);
+    }
+
+    function mostrarError(mensaje) {
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('errorMsg').textContent = mensaje;
+      document.getElementById('error').style.display = 'block';
+    }
 
     function retryLoad() {
       document.getElementById('error').style.display = 'none';
-      document.getElementById('appFrame').src = 
-        document.getElementById('appFrame').src + '?retry=' + Date.now();
+      document.getElementById('loading').style.display = 'block';
+      
+      // Forzar recarga con timestamp para evitar cache
+      var iframe = document.getElementById('appFrame');
+      var urlReal = decodificarURL();
+      
+      if (urlReal) {
+        iframe.src = urlReal + '?retry=' + Date.now();
+      }
+    }
+
+    // Iniciar cuando la página cargue
+    window.onload = function() {
+      cargarAplicacion();
+    };
+
+    // También intentar si hay retraso
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', cargarAplicacion);
+    } else {
+      cargarAplicacion();
     }
   </script>
 
